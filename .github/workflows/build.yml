@@ -1,9 +1,15 @@
 name: Build and Deploy
 
 on:
-  push:
-    branches:
-      - master
+  workflow_dispatch:
+    inputs:
+      Environment:
+        type: choice
+        description: 'Environment'
+        required: true
+        options:
+           - Debug
+           - Release
 
 env:
   AZURE_WEBAPP_NAME: SimpleFrameworkApp.sln     # set this to your application's name
@@ -31,7 +37,7 @@ jobs:
       run: msbuild ${{ env.AZURE_WEBAPP_NAME }} /p:Configuration=Release
 
     - name: Publish to folder
-      run: msbuild ${{ env.AZURE_WEBAPP_NAME }} /p:Configuration=Release /p:DeployOnBuild=true /t:WebPublish /p:WebPublishMethod=FileSystem /p:publishUrl=${{ env.AZURE_WEBAPP_PACKAGE_PATH }} /p:PackageAsSingleFile=false
+      run: msbuild ${{ env.AZURE_WEBAPP_NAME }} /p:Configuration=Release /p:EnvironmentName=${{ inputs.Environment }} /p:DeployOnBuild=true /t:WebPublish /p:WebPublishMethod=FileSystem /p:publishUrl=${{ env.AZURE_WEBAPP_PACKAGE_PATH }} /p:PackageAsSingleFile=false
 
     - name: Deploy to Azure WebApp
       uses: azure/webapps-deploy@v1
