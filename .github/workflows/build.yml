@@ -29,7 +29,10 @@ jobs:
     
     - name: Setup NuGet
       uses: NuGet/setup-nuget@v1.0.5
-    
+
+    - name: Install Azure CLI
+      run: curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+      
     - name: Restore NuGet packages
       run: nuget restore ${{ env.AZURE_SOLUTION_NAME }}
 
