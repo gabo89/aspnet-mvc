@@ -46,6 +46,7 @@ jobs:
 
     - name: Retrieve publish profile for deployment
       id: publishProfileRetrieval
+      shell: cmd
       run: |
         publishProfiles=$(az webapp deployment list-publishing-profiles \
           --name ${{ env.AZURE_WEBAPP_NAME }} \
