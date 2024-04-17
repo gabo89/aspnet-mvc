@@ -46,9 +46,9 @@ jobs:
 
     - name: Retrieve publish profile for deployment
       id: publishProfileRetrieval
-      shell: cmd
+      shell: pwsh
       run: |
-        publishProfiles=$(az webapp deployment list-publishing-profiles \
+        $publishProfiles=(az webapp deployment list-publishing-profiles \
           --name ${{ env.AZURE_WEBAPP_NAME }} \
           --resource-group "${{ env.RESOURCE_GROUP }}" \
           --subscription ${{ env.AZURE_SUBSCRIPTION_ID }} --xml)
