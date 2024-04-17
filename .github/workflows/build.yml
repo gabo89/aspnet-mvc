@@ -23,12 +23,10 @@ jobs:
     - uses: actions/checkout@v2
     
     - name: Setup MSBuild path
-      uses: microsoft/setup-msbuild@v1.0.1
-      with:
-        vs-version: "[16.4,16.9)"
+      uses: microsoft/setup-msbuild@v1.1
     
     - name: Setup NuGet
-      uses: NuGet/setup-nuget@v1.0.2
+      uses: NuGet/setup-nuget@v1.0.5
     
     - name: Restore NuGet packages
       run: nuget restore ${{ env.AZURE_WEBAPP_NAME }}
@@ -39,15 +37,20 @@ jobs:
     - name: Publish to folder
       run: msbuild ${{ env.AZURE_WEBAPP_NAME }} /p:Configuration=Release /p:EnvironmentName=${{ inputs.Environment }} /p:DeployOnBuild=true /t:WebPublish /p:WebPublishMethod=FileSystem /p:publishUrl=${{ env.AZURE_WEBAPP_PACKAGE_PATH }} /p:PackageAsSingleFile=false
 
-    - name: Deploy to Azure WebApp
-      uses: azure/webapps-deploy@v1
+    - name: Retrieve publish profile for deployment
+      id: publishProfileRetrieval
+      run: |
+        publishProfiles=$(az webapp deployment list-publishing-profiles \
+          --name ${{ env.AZURE_WEBAPP_NAME }} \
+          --resource-group "${{ env.RESOURCE_GROUP }}" \
+          --subscription ${{ vars.AZURE_SUBSCRIPTION_ID }} --xml)
+        echo "::add-mask::$publishProfiles"
+        echo "::set-output name=publishProfiles::$publishProfiles"
+
+    - name: Deploy ${{ env.artifactName }} to Azure WebApp
+      id: deploy-to-webapp
+      uses: azure/webapps-deploy@v2
       with:
         app-name: ${{ env.AZURE_WEBAPP_NAME }}
-        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
         package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
-
-    - name: Publish artifacts
-      uses: actions/upload-artifact@v1.0.0
-      with:
-        name: webapp
-        path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+        publish-profile: ${{ steps.publishProfileRetrieval.outputs.publishProfiles }}
