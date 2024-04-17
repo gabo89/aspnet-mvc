@@ -48,10 +48,7 @@ jobs:
       id: publishProfileRetrieval
       shell: pwsh
       run: |
-        $publishProfiles=(az webapp deployment list-publishing-profiles \
-          --name ${{ env.AZURE_WEBAPP_NAME }} \
-          --resource-group "${{ env.RESOURCE_GROUP }}" \
-          --subscription ${{ env.AZURE_SUBSCRIPTION_ID }} --xml)
+        $publishProfiles=(az webapp deployment list-publishing-profiles --name ${{ env.AZURE_WEBAPP_NAME }}  --resource-group "${{ env.RESOURCE_GROUP }}" --subscription ${{ env.AZURE_SUBSCRIPTION_ID }} --xml)
         echo "::add-mask::$publishProfiles"
         echo "::set-output name=publishProfiles::$publishProfiles"
 
