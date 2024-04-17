@@ -29,7 +29,12 @@ jobs:
     
     - name: Setup NuGet
       uses: NuGet/setup-nuget@v1.0.5
-    
+
+    - name: Install Azure CLI
+      shell: pwsh
+      run: |
+        $ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri https://aka.ms/installazurecliwindows -OutFile .\AzureCLI.msi; Start-Process msiexec.exe -Wait -ArgumentList '/I AzureCLI.msi /quiet'; Remove-Item .\AzureCLI.msi
+      
     - name: Restore NuGet packages
       run: nuget restore ${{ env.AZURE_SOLUTION_NAME }}
 
@@ -39,13 +44,17 @@ jobs:
     - name: Publish to folder
       run: msbuild ${{ env.AZURE_SOLUTION_NAME }} /p:Configuration=Release /p:EnvironmentName=${{ inputs.Environment }} /p:DeployOnBuild=true /t:WebPublish /p:WebPublishMethod=FileSystem /p:publishUrl=${{ env.AZURE_WEBAPP_PACKAGE_PATH }} /p:PackageAsSingleFile=false
 
+    #https://github.com/marketplace/actions/azure-login#login-with-a-service-principal-secret
+    - name: Az CLI login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
     - name: Retrieve publish profile for deployment
       id: publishProfileRetrieval
+      shell: pwsh
       run: |
-        publishProfiles=$(az webapp deployment list-publishing-profiles \
-          --name ${{ env.AZURE_WEBAPP_NAME }} \
-          --resource-group "${{ env.RESOURCE_GROUP }}" \
-          --subscription ${{ vars.AZURE_SUBSCRIPTION_ID }} --xml)
+        $publishProfiles=(az webapp deployment list-publishing-profiles --name ${{ env.AZURE_WEBAPP_NAME }}  --resource-group "${{ env.RESOURCE_GROUP }}" --subscription ${{ env.AZURE_SUBSCRIPTION_ID }} --xml)
         echo "::add-mask::$publishProfiles"
         echo "::set-output name=publishProfiles::$publishProfiles"
 
