@@ -44,6 +44,12 @@ jobs:
     - name: Publish to folder
       run: msbuild ${{ env.AZURE_SOLUTION_NAME }} /p:Configuration=Release /p:EnvironmentName=${{ inputs.Environment }} /p:DeployOnBuild=true /t:WebPublish /p:WebPublishMethod=FileSystem /p:publishUrl=${{ env.AZURE_WEBAPP_PACKAGE_PATH }} /p:PackageAsSingleFile=false
 
+    #https://github.com/marketplace/actions/azure-login#login-with-a-service-principal-secret
+    - name: Az CLI login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
     - name: Retrieve publish profile for deployment
       id: publishProfileRetrieval
       shell: pwsh
